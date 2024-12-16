@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="CustomToolbarStyle" parent="Widget.AppCompat.Toolbar">
+        <item name="titleTextAppearance">@style/CustomToolbarTitleTextAppearance</item>
+    </style>
+
+    <style name="CustomToolbarTitleTextAppearance" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">18sp</item>  <!-- Set your desired font size -->
+        <item name="android:fontFamily">@font/inter_medium</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Theme.AnimatedSplash.MySplash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/avd_storyapp</item>
+        <item name="android:statusBarColor">#F7931E</item>
+    </style>
+
+    <style name="Theme.StoryAppAwal.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/avd_storyapp</item>
+        <item name="android:statusBarColor">#F7931E</item>
+    </style>
+</resources>

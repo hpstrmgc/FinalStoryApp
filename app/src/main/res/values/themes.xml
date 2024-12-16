@@ -1,0 +1,10 @@
+<resources>
+
+    <style name="Base.Theme.StoryAppAwal" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#F7931E</item>
+    </style>
+
+    <style name="Theme.StoryAppAwal" parent="Base.Theme.StoryAppAwal">
+        <item name="android:statusBarColor">#F7931E</item>
+    </style>
+</resources>
