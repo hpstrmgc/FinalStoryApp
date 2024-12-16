@@ -54,4 +54,6 @@
     <string name="fetching_stories">Fetching stories with token: %1$s</string>
     <string name="error_fetching_stories">Error fetching stories</string>
     <string name="unknown_viewmodel_class">Unknown ViewModel class</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="story_map">Story Map</string>
 </resources>

@@ -12,6 +12,7 @@ import com.nat.finalstoryapp.data.api.response.Story
 import com.nat.finalstoryapp.data.di.Injection
 import com.nat.finalstoryapp.databinding.ActivityStoryBinding
 import com.nat.finalstoryapp.ui.authpage.LoginActivity
+import com.nat.finalstoryapp.ui.maps.MapsActivity
 import com.nat.finalstoryapp.ui.newstory.NewStoryActivity
 
 class StoryActivity : AppCompatActivity() {
@@ -42,6 +43,11 @@ class StoryActivity : AppCompatActivity() {
 
         binding.actionLogout.setOnClickListener {
             logout()
+        }
+
+        binding.actionMap.setOnClickListener {
+            val intent = Intent(this, MapsActivity::class.java)
+            startActivity(intent)
         }
 
         setupRecyclerView()

@@ -1,6 +1,5 @@
 package com.nat.finalstoryapp.data.repository
 
-import android.util.Log
 import com.nat.finalstoryapp.data.api.ApiService
 import com.nat.finalstoryapp.data.api.response.StoryResponse
 import com.nat.finalstoryapp.data.pref.UserPreference
@@ -12,10 +11,16 @@ class StoryRepository private constructor(
 
     suspend fun getStories(token: String): StoryResponse {
         return try {
-            Log.d("StoryRepository", "Fetching stories with token: $token")
             apiService.getStories("Bearer $token")
         } catch (e: HttpException) {
-            Log.e("StoryRepository", "Error fetching stories", e)
+            throw e
+        }
+    }
+
+    suspend fun getStoriesWithLocation(token: String): StoryResponse {
+        return try {
+            apiService.getStoriesWithLocation("Bearer $token")
+        } catch (e: HttpException) {
             throw e
         }
     }

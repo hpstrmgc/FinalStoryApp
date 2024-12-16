@@ -2,6 +2,7 @@ package com.nat.finalstoryapp.ui.newstory
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -12,8 +13,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
+import com.google.android.gms.location.LocationServices
 import com.nat.finalstoryapp.R
 import com.nat.finalstoryapp.databinding.ActivityNewStoryBinding
 import com.nat.finalstoryapp.utils.getImageUri
@@ -30,6 +33,7 @@ class NewStoryActivity : AppCompatActivity() {
     private var currentImageUri: Uri? = null
     private var tempImageUri: Uri? = null
     private val newStoryViewModel: NewStoryViewModel by viewModels()
+    private var currentLocation: Location? = null
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -42,6 +46,17 @@ class NewStoryActivity : AppCompatActivity() {
         }
     }
 
+    private val requestLocationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            getCurrentLocation()
+        } else {
+            binding.checkboxIncludeLocation.isChecked = false
+            showLocationPermissionRationaleDialog()
+        }
+    }
+
     private fun allPermissionsGranted() = ContextCompat.checkSelfPermission(
         this, REQUIRED_PERMISSION
     ) == PackageManager.PERMISSION_GRANTED
@@ -51,7 +66,24 @@ class NewStoryActivity : AppCompatActivity() {
             .setTitle("Camera Permission Required")
             .setMessage("This app needs camera access to take pictures. Please grant permission in the app settings.")
             .setPositiveButton("Open Settings") { _, _ ->
-                // Open Settings
+                val intent = android.content.Intent(
+                    android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    android.net.Uri.fromParts("package", packageName, null)
+                )
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun showLocationPermissionRationaleDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Location Permission Required")
+            .setMessage("This app needs location access to add location to your story. Please grant permission in the app settings.")
+            .setPositiveButton("Open Settings") { _, _ ->
                 val intent = android.content.Intent(
                     android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     android.net.Uri.fromParts("package", packageName, null)
@@ -80,9 +112,11 @@ class NewStoryActivity : AppCompatActivity() {
                 allPermissionsGranted() -> {
                     startCamera()
                 }
+
                 shouldShowRequestPermissionRationale(REQUIRED_PERMISSION) -> {
                     showPermissionRationaleDialog()
                 }
+
                 else -> {
                     requestPermissionLauncher.launch(REQUIRED_PERMISSION)
                 }
@@ -92,6 +126,31 @@ class NewStoryActivity : AppCompatActivity() {
 
         binding.buttonBack.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
+        }
+
+        binding.checkboxIncludeLocation.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                when {
+                    ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    )
+                            == PackageManager.PERMISSION_GRANTED -> {
+                        getCurrentLocation()
+                    }
+
+                    shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                        showLocationPermissionRationaleDialog()
+                        binding.checkboxIncludeLocation.isChecked = false
+                    }
+
+                    else -> {
+                        requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    }
+                }
+            } else {
+                currentLocation = null
+            }
         }
 
         newStoryViewModel.fileUploadResponse.observe(this, Observer { response ->
@@ -159,12 +218,37 @@ class NewStoryActivity : AppCompatActivity() {
             )
             val token = getTokenFromPreferences()
             if (token != null) {
-                newStoryViewModel.uploadStory(token, requestBody, multipartBody)
+                val lat = currentLocation?.latitude?.toFloat()
+                val lon = currentLocation?.longitude?.toFloat()
+                newStoryViewModel.uploadStory(token, requestBody, multipartBody, lat, lon)
             } else {
                 showLoading(false)
                 showToast("Token is null")
             }
         } ?: showToast(getString(R.string.empty_image_warning))
+    }
+
+    private fun getCurrentLocation() {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+            if (location != null) {
+                currentLocation = location
+                Toast.makeText(this, "Location retrieved successfully", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Failed to get location", Toast.LENGTH_SHORT).show()
+                binding.checkboxIncludeLocation.isChecked = false
+            }
+        }.addOnFailureListener {
+            Toast.makeText(this, "Failed to get location", Toast.LENGTH_SHORT).show()
+            binding.checkboxIncludeLocation.isChecked = false
+        }
     }
 
     private fun getTokenFromPreferences(): String? {

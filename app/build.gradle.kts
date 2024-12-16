@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.kapt")
     id("kotlin-parcelize")
     id("com.google.devtools.ksp") version "1.9.0-1.0.13"
+    alias(libs.plugins.google.android.libraries.mapsplatform.secrets.gradle.plugin)
 }
 
 android {
@@ -51,6 +52,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.play.services.maps)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -87,4 +89,7 @@ dependencies {
     //Glide
     implementation(libs.glide)
     kapt("com.github.bumptech.glide:compiler:4.16.0")
+
+    //FusedLocation
+    implementation(libs.play.services.location)
 }
