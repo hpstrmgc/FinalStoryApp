@@ -11,12 +11,14 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.nat.finalstoryapp.data.di.Injection
 import com.nat.finalstoryapp.databinding.ActivityStoryBinding
 import com.nat.finalstoryapp.ui.authpage.LoginActivity
 import com.nat.finalstoryapp.ui.maps.MapsActivity
 import com.nat.finalstoryapp.ui.newstory.NewStoryActivity
+import com.nat.finalstoryapp.utils.LoadingStateAdapter
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -85,9 +87,13 @@ class StoryActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         storyAdapter = StoryListAdapter()
+        val concatAdapter = ConcatAdapter(storyAdapter.withLoadStateFooter(
+            footer = LoadingStateAdapter { storyAdapter.retry() }
+        ))
+
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@StoryActivity)
-            adapter = storyAdapter
+            adapter = concatAdapter
         }
 
         storyAdapter.addLoadStateListener { loadState ->
