@@ -15,7 +15,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Observer
 import com.google.android.gms.location.LocationServices
 import com.nat.finalstoryapp.R
 import com.nat.finalstoryapp.databinding.ActivityNewStoryBinding
@@ -39,10 +38,12 @@ class NewStoryActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            Toast.makeText(this, "Permission request granted", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Camera permission granted", Toast.LENGTH_LONG).show()
             startCamera()
         } else {
-            Toast.makeText(this, "Permission request denied", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this, "Camera permission denied, you can change it in settings", Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -62,39 +63,33 @@ class NewStoryActivity : AppCompatActivity() {
     ) == PackageManager.PERMISSION_GRANTED
 
     private fun showPermissionRationaleDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Camera Permission Required")
+        AlertDialog.Builder(this).setTitle("Camera Permission Required")
             .setMessage("This app needs camera access to take pictures. Please grant permission in the app settings.")
             .setPositiveButton("Open Settings") { _, _ ->
                 val intent = android.content.Intent(
                     android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    android.net.Uri.fromParts("package", packageName, null)
+                    Uri.fromParts("package", packageName, null)
                 )
                 intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
-            }
-            .setNegativeButton("Cancel") { dialog, _ ->
+            }.setNegativeButton("Cancel") { dialog, _ ->
                 dialog.dismiss()
-            }
-            .show()
+            }.show()
     }
 
     private fun showLocationPermissionRationaleDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Location Permission Required")
-            .setMessage("This app needs location access to add location to your story. Please grant permission in the app settings.")
+        AlertDialog.Builder(this).setTitle("Location Permission Required")
+            .setMessage("This app needs precise location access to add location to your story. Please grant permission in the app settings.")
             .setPositiveButton("Open Settings") { _, _ ->
                 val intent = android.content.Intent(
                     android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    android.net.Uri.fromParts("package", packageName, null)
+                    Uri.fromParts("package", packageName, null)
                 )
                 intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
-            }
-            .setNegativeButton("Cancel") { dialog, _ ->
+            }.setNegativeButton("Cancel") { dialog, _ ->
                 dialog.dismiss()
-            }
-            .show()
+            }.show()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,10 +127,8 @@ class NewStoryActivity : AppCompatActivity() {
             if (isChecked) {
                 when {
                     ContextCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    )
-                            == PackageManager.PERMISSION_GRANTED -> {
+                        this, Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED -> {
                         getCurrentLocation()
                     }
 
@@ -153,7 +146,7 @@ class NewStoryActivity : AppCompatActivity() {
             }
         }
 
-        newStoryViewModel.fileUploadResponse.observe(this, Observer { response ->
+        newStoryViewModel.fileUploadResponse.observe(this) { response ->
             showLoading(false)
             if (response.error) {
                 showToast(response.message)
@@ -162,7 +155,7 @@ class NewStoryActivity : AppCompatActivity() {
                 setResult(RESULT_OK)
                 finish()
             }
-        })
+        }
     }
 
     private fun startGallery() {
@@ -231,8 +224,7 @@ class NewStoryActivity : AppCompatActivity() {
     private fun getCurrentLocation() {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             return

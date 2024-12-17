@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,11 +24,25 @@ class StoryActivity : AppCompatActivity() {
     }
     private lateinit var storyAdapter: StoryAdapter
 
+    private val newStoryLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            observeStories()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityStoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finishAffinity() // close the app, not going to the previous activity
+            }
+        })
 
         if (!isUserLoggedIn()) {
             Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show()
@@ -38,7 +54,7 @@ class StoryActivity : AppCompatActivity() {
 
         binding.buttonCreate.setOnClickListener {
             val intent = Intent(this, NewStoryActivity::class.java)
-            startActivityForResult(intent, REQUEST_CODE_NEW_STORY)
+            newStoryLauncher.launch(intent)
         }
 
         binding.actionLogout.setOnClickListener {
@@ -54,10 +70,10 @@ class StoryActivity : AppCompatActivity() {
         observeStories()
     }
 
+    @Deprecated("Replaced by Activity Result API")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE_NEW_STORY && resultCode == RESULT_OK) {
-            // Refresh stories when a new story is successfully uploaded
             observeStories()
         }
     }
@@ -117,10 +133,6 @@ class StoryActivity : AppCompatActivity() {
         Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show()
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
-    }
-
-    override fun onBackPressed() {
-        finishAffinity() // close the app, not going to the previous activity
     }
 
     companion object {
