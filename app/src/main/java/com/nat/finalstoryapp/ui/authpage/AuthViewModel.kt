@@ -3,7 +3,7 @@ package com.nat.finalstoryapp.ui.authpage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.liveData
-import com.nat.finalstoryapp.data.api.ApiService
+import com.nat.finalstoryapp.data.network.ApiService
 import com.nat.finalstoryapp.data.api.response.LoginResponse
 import com.nat.finalstoryapp.data.api.response.RegisterResponse
 import kotlinx.coroutines.Dispatchers

@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import com.nat.finalstoryapp.data.api.ApiServiceFactory
+import com.nat.finalstoryapp.data.network.ApiServiceFactory
 import com.nat.finalstoryapp.databinding.ActivityRegisterBinding
 
 class RegisterActivity : AppCompatActivity() {

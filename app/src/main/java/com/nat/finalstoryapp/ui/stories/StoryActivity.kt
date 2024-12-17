@@ -9,20 +9,23 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.nat.finalstoryapp.data.api.response.Story
 import com.nat.finalstoryapp.data.di.Injection
 import com.nat.finalstoryapp.databinding.ActivityStoryBinding
 import com.nat.finalstoryapp.ui.authpage.LoginActivity
 import com.nat.finalstoryapp.ui.maps.MapsActivity
 import com.nat.finalstoryapp.ui.newstory.NewStoryActivity
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class StoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityStoryBinding
     private val storyViewModel: StoryViewModel by viewModels {
         StoryViewModelFactory(Injection.provideRepository(this))
     }
-    private lateinit var storyAdapter: StoryAdapter
+    private lateinit var storyAdapter: StoryListAdapter
 
     private val newStoryLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -70,14 +73,6 @@ class StoryActivity : AppCompatActivity() {
         observeStories()
     }
 
-    @Deprecated("Replaced by Activity Result API")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_NEW_STORY && resultCode == RESULT_OK) {
-            observeStories()
-        }
-    }
-
     private fun isUserLoggedIn(): Boolean {
         val token = getTokenFromPreferences()
         return !token.isNullOrEmpty()
@@ -89,10 +84,25 @@ class StoryActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        storyAdapter = StoryAdapter()
+        storyAdapter = StoryListAdapter()
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(this@StoryActivity)
             adapter = storyAdapter
+        }
+
+        storyAdapter.addLoadStateListener { loadState ->
+            if (loadState.refresh is LoadState.Loading) {
+                showProgressBar(true)
+            } else {
+                showProgressBar(false)
+                val errorState = loadState.source.append as? LoadState.Error
+                    ?: loadState.source.prepend as? LoadState.Error
+                    ?: loadState.append as? LoadState.Error
+                    ?: loadState.prepend as? LoadState.Error
+                errorState?.let {
+                    Toast.makeText(this, it.error.message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -100,22 +110,9 @@ class StoryActivity : AppCompatActivity() {
         val token = getTokenFromPreferences()
         if (token != null) {
             Log.d("StoryActivity", "Token: $token")
-            showProgressBar(true)
-            storyViewModel.getStories(token).observe(this) { storyResponse ->
-                showProgressBar(false)
-                if (storyResponse != null) {
-                    val stories = storyResponse.listStory.map { listStoryItem ->
-                        Story(
-                            id = listStoryItem.id,
-                            title = listStoryItem.name ?: "",
-                            description = listStoryItem.description ?: "",
-                            photoUrl = listStoryItem.photoUrl ?: "",
-                            createdAt = listStoryItem.createdAt ?: ""
-                        )
-                    }
-                    storyAdapter.submitList(stories)
-                } else {
-                    Toast.makeText(this, "Failed to fetch stories", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                storyViewModel.getStories(token).collectLatest { pagingData ->
+                    storyAdapter.submitData(pagingData)
                 }
             }
         } else {
@@ -133,9 +130,5 @@ class StoryActivity : AppCompatActivity() {
         Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show()
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
-    }
-
-    companion object {
-        private const val REQUEST_CODE_NEW_STORY = 1
     }
 }

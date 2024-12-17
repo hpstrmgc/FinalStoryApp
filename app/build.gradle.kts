@@ -36,6 +36,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs += listOf("-Xopt-in=kotlin.RequiresOptIn")
     }
 
     buildFeatures {
@@ -77,7 +78,7 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.room.ktx)
-    kapt("androidx.room:room-compiler:2.6.1")
+    ksp(libs.room.compiler)
 
     // DataStore
     implementation(libs.androidx.datastore.preferences)
@@ -88,8 +89,12 @@ dependencies {
 
     //Glide
     implementation(libs.glide)
-    kapt("com.github.bumptech.glide:compiler:4.16.0")
+    ksp(libs.glide.ksp)
 
     //FusedLocation
     implementation(libs.play.services.location)
+
+    // Paging
+    implementation(libs.androidx.paging.runtime.ktx)
+    implementation(libs.androidx.room.paging)
 }

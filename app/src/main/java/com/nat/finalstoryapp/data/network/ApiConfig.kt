@@ -1,4 +1,4 @@
-package com.nat.finalstoryapp.data.api
+package com.nat.finalstoryapp.data.network
 
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient

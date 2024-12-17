@@ -1,23 +1,19 @@
 package com.nat.finalstoryapp.ui.stories
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.nat.finalstoryapp.data.api.response.ListStoryItem
 import com.nat.finalstoryapp.data.repository.StoryRepository
-import kotlinx.coroutines.Dispatchers
-import retrofit2.HttpException
+import kotlinx.coroutines.flow.Flow
+
 
 class StoryViewModel(private val repository: StoryRepository) : ViewModel() {
 
-    fun getStories(token: String) = liveData(Dispatchers.IO) {
-        try {
-            val stories = repository.getStories(token)
-            emit(stories)
-        } catch (e: HttpException) {
-            Log.e("StoryViewModel", "Error fetching stories", e)
-            emit(null)
-        }
+    fun getStories(token: String): Flow<PagingData<ListStoryItem>> {
+        return repository.getStories(token).cachedIn(viewModelScope)
     }
 }
 

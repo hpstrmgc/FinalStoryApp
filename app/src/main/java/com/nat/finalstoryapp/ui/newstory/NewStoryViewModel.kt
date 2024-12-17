@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.nat.finalstoryapp.data.api.ApiConfig
+import com.nat.finalstoryapp.data.network.ApiConfig
 import com.nat.finalstoryapp.data.api.response.FileUploadResponse
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
