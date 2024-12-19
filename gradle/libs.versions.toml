@@ -38,7 +38,7 @@ roomPaging = "2.4.0-rc01"
 coreTesting = "2.1.0"
 kotlinxCoroutinesTest = "1.6.1"
 mockitoCore = "4.4.0"
-mockitoInline = "4.4.0"
+mockitoInline = "5.2.0"
 junitJunit = "4.12"
 
 [libraries]
